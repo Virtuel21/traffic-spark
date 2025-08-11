@@ -2,9 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here.
+All colors MUST be HSL. */
 
 @layer base {
   :root {
@@ -36,23 +35,26 @@ All colors MUST be HSL.
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* New design tokens */
+    --brand: 262 83% 58%;
+    --brand-contrast: 0 0% 100%;
+    --brand-soft: 262 92% 70%;
+    --gradient-primary: linear-gradient(135deg, hsl(var(--brand)), hsl(var(--brand-soft)));
+    --surface-glass: 0 0% 100% / 0.6;
+    --shadow-elev: 0 10px 30px -10px hsl(var(--brand) / 0.25);
+    --shadow-soft: 0 4px 16px -6px hsl(var(--foreground) / 0.08);
+    --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
@@ -91,15 +93,17 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --brand: 262 83% 66%;
+    --brand-contrast: 0 0% 100%;
+    --brand-soft: 262 83% 58%;
+    --surface-glass: 222.2 84% 4.9% / 0.4;
+    --shadow-elev: 0 14px 36px -12px hsl(var(--brand) / 0.35);
+    --shadow-soft: 0 6px 18px -8px hsl(var(--background) / 0.5);
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-  }
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; font-feature-settings: "ss01" on, "ss02" on; }
 }
