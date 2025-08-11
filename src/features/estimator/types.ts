@@ -59,13 +59,15 @@ export interface ScoreWeights {
 }
 
 export interface FiltersState {
-  brandOn: boolean;
-  brandMode: "include" | "exclude";
-  brandTerms: string;
-  minVolume: number;
-  countryIn: string[];
-  deviceIn: string[];
-}
+    brandOn: boolean;
+    brandMode: "include" | "exclude";
+    brandTerms: string;
+    minVolume: number;
+    countryIn: string[];
+    deviceIn: string[];
+    urlMode: "contains" | "exact";
+    urlValue: string;
+  }
 
 export interface SettingsState {
   ctr: CTRBuckets;

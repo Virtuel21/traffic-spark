@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { DEFAULT_COHORTS } from "../../estimator/constants";
-import { ColumnMapping, CohortRule, CTRBuckets, EngineMode, ScoreWeights, SettingsState } from "../../estimator/types";
+import { ColumnMapping, CohortRule, CTRBuckets, EngineMode, ScoreWeights, SettingsState, FiltersState } from "../../estimator/types";
 
 interface ColumnMapperProps {
   headers: string[];
@@ -53,11 +53,12 @@ interface SidebarProps {
   headers: string[];
   mapping: ColumnMapping | null;
   onMappingChange: (m: ColumnMapping) => void;
-  filters: { brandOn: boolean; brandMode: "include" | "exclude"; brandTerms: string; minVolume: number; countryIn: string[]; deviceIn: string[] };
-  setFilters: (f: SidebarProps["filters"]) => void;
+  filters: FiltersState;
+  setFilters: (f: FiltersState) => void;
+  urls: string[];
 }
 
-export default function Sidebar({ settings, setSettings, onReset, ctrError, headers, mapping, onMappingChange, filters, setFilters }: SidebarProps) {
+export default function Sidebar({ settings, setSettings, onReset, ctrError, headers, mapping, onMappingChange, filters, setFilters, urls }: SidebarProps) {
   const sumErr = useMemo(() => validateCohorts(settings.cohorts), [settings.cohorts]);
 
   const setCTR = (k: keyof CTRBuckets, v: number) => setSettings({ ...settings, ctr: { ...settings.ctr, [k]: clamp(v, 0, 100) } });
@@ -75,6 +76,15 @@ export default function Sidebar({ settings, setSettings, onReset, ctrError, head
     contentMatch: "Content match",
     linkGap: "Link gap",
     base_stay: "Base stay",
+  };
+
+  const weightHelp: Record<keyof ScoreWeights, string> = {
+    positionGap: "Bigger gap to top positions means more room to grow.",
+    keywordDifficulty: "How hard the keyword is to rank for.",
+    serpComplexity: "More SERP features make results tougher.",
+    contentMatch: "How well your page answers the query.",
+    linkGap: "Backlink difference versus competitors.",
+    base_stay: "Base chance that rank does not change.",
   };
 
   return (
@@ -104,6 +114,26 @@ export default function Sidebar({ settings, setSettings, onReset, ctrError, head
         <div className="space-y-1">
           <Label className="flex items-center gap-2">Min Volume <HelpTooltip content="Ignore keywords with monthly search volume below this threshold." /></Label>
           <Input type="number" value={filters.minVolume} onChange={(e) => setFilters({ ...filters, minVolume: Number(e.target.value || 0) })} />
+        </div>
+        <div className="space-y-1">
+          <Label className="flex items-center gap-2">URL filter <HelpTooltip content="Show only rows whose URL contains or matches this text." /></Label>
+          <div className="grid grid-cols-2 gap-3">
+            <Select value={filters.urlMode} onValueChange={(v) => setFilters({ ...filters, urlMode: v as any })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="contains">Contains</SelectItem>
+                <SelectItem value="exact">Exact</SelectItem>
+              </SelectContent>
+            </Select>
+            <div>
+              <Input list="url-options" placeholder="Paste or choose" value={filters.urlValue} onChange={(e) => setFilters({ ...filters, urlValue: e.target.value })} />
+              <datalist id="url-options">
+                {urls.map((u) => (
+                  <option key={u} value={u} />
+                ))}
+              </datalist>
+            </div>
+          </div>
         </div>
       </Card>
 
@@ -154,16 +184,16 @@ export default function Sidebar({ settings, setSettings, onReset, ctrError, head
               <h3 className="text-sm font-medium flex items-center gap-2">Weights <HelpTooltip content="Adjust how features influence each bucket score; probabilities are computed via softmax. base_stay controls p(stay)." /></h3>
               {(["positionGap","keywordDifficulty","serpComplexity","contentMatch","linkGap"] as (keyof ScoreWeights)[]).map((k) => (
                 <div key={k} className="space-y-1">
-                  <div className="flex justify-between text-xs"><Label>{weightLabels[k]}</Label><span>{settings.weights[k].toFixed(2)}</span></div>
+                  <div className="flex justify-between text-xs"><Label className="flex items-center gap-1">{weightLabels[k]} <HelpTooltip content={weightHelp[k]} /></Label><span>{settings.weights[k].toFixed(2)}</span></div>
                   <Slider value={[settings.weights[k]]} onValueChange={(v) => setWeights({ [k]: v[0] } as any)} min={0} max={1} step={0.01} />
                 </div>
               ))}
               <div className="space-y-1">
-                <div className="flex justify-between text-xs"><Label>base_stay</Label><span>{settings.weights.base_stay.toFixed(2)}</span></div>
+                <div className="flex justify-between text-xs"><Label className="flex items-center gap-1">base_stay <HelpTooltip content={weightHelp.base_stay} /></Label><span>{settings.weights.base_stay.toFixed(2)}</span></div>
                 <Slider value={[settings.weights.base_stay]} onValueChange={(v) => setWeights({ base_stay: v[0] })} min={0} max={0.6} step={0.01} />
               </div>
-            </Card>
-        </TabsContent>
+          </Card>
+      </TabsContent>
       </Tabs>
 
       <Card className="p-4 space-y-4">
