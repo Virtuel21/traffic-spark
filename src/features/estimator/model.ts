@@ -149,8 +149,9 @@ export function computeTable(rows: KeywordRow[], settings: SettingsState) : { ta
     const incrementalClicks = Math.max(0, estimatedClicks - baselineClicks);
 
     const expectedBucket = maxBucketByProb(probs);
+    const expectedPosition = expectedBucket === "B21P" ? row.position : BUCKET_CENTERS[expectedBucket as keyof typeof BUCKET_CENTERS];
 
-    const out: TableRow = { ...row, cohort, baselineBucket: baseBucket, baselineCTR: baseCTR, probs, expectedCTR: expected, baselineClicks, estimatedClicks, incrementalClicks, expectedBucket };
+    const out: TableRow = { ...row, cohort, baselineBucket: baseBucket, baselineCTR: baseCTR, probs, expectedCTR: expected, baselineClicks, estimatedClicks, incrementalClicks, expectedBucket, expectedPosition };
     table.push(out);
 
     const improve = 1 - probs.stay;
