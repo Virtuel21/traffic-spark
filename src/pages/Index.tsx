@@ -6,7 +6,7 @@ import DataTable from "@/features/estimator/components/DataTable";
 import { parseFile, mapAndClean } from "@/features/estimator/parser";
 import { computeTable } from "@/features/estimator/model";
 import { DEFAULT_COHORTS, DEFAULT_CTR, DEFAULT_WEIGHTS } from "@/features/estimator/constants";
-import { ColumnMapping, KeywordRow, SettingsState, TableRow, FiltersState } from "@/features/estimator/types";
+import { ColumnMapping, KeywordRow, SettingsState, TableRow } from "@/features/estimator/types";
 import { exportTableCSV, exportTableXLSX } from "@/features/estimator/export";
 import { generateSampleRows } from "@/features/estimator/sample";
 
@@ -25,7 +25,16 @@ const DEFAULT_SETTINGS: SettingsState = {
 
 const DEFAULT_MAPPING: ColumnMapping = { keyword: "Keyword", position: "Position", volume: "Search Volume", url: "URL", country: "Country", device: "Device", intent: "Intent", kd: "KD", serpFeatures: "SERP Features" };
 
-const DEFAULT_FILTERS = { brandOn: false, brandMode: "exclude", brandTerms: "", minVolume: 50, countryIn: [] as string[], deviceIn: [] as string[] };
+const DEFAULT_FILTERS = {
+  brandOn: false,
+  brandMode: "exclude",
+  brandTerms: "",
+  minVolume: 50,
+  countryIn: [] as string[],
+  deviceIn: [] as string[],
+  urlMode: "contains" as "contains" | "exact",
+  urlValue: "",
+};
 
 export default function Index() {
   const [rawHeaders, setRawHeaders] = useState<string[]>([]);
@@ -43,14 +52,21 @@ export default function Index() {
     }
   }, [loadSample]);
 
-  const cleaned: KeywordRow[] = useMemo(() => {
+  const mapped: KeywordRow[] = useMemo(() => {
     if (!mapping) return [];
-    // If rows are already KeywordRow from sample, just ensure structure
-    if (rawRows.length && rawRows[0].keyword) return (rawRows as KeywordRow[]).filter((r) => r.volume >= (filters.minVolume || 0)).filter((r) => filterBrand(r, filters));
+    if (rawRows.length && rawRows[0].keyword) return rawRows as KeywordRow[];
     if (!rawRows.length) return [];
-    const mapped = mapAndClean(rawRows, mapping).filter((r) => r.volume >= (filters.minVolume || 0)).filter((r) => filterBrand(r, filters));
-    return mapped;
-  }, [rawRows, mapping, filters]);
+    return mapAndClean(rawRows, mapping);
+  }, [rawRows, mapping]);
+
+  const urlOptions = useMemo(() => Array.from(new Set(mapped.map((r) => r.url).filter(Boolean))) as string[], [mapped]);
+
+  const cleaned: KeywordRow[] = useMemo(() => {
+    return mapped
+      .filter((r) => r.volume >= (filters.minVolume || 0))
+      .filter((r) => filterBrand(r, filters))
+      .filter((r) => filterUrl(r, filters));
+  }, [mapped, filters]);
 
   const { table, totals } = useMemo(() => computeTable(cleaned, settings), [cleaned, settings]);
 
@@ -67,17 +83,18 @@ export default function Index() {
       <TopBar onFile={onFile} loadSample={loadSample} setLoadSample={setLoadSample} />
 
       <section className="max-w-screen-2xl mx-auto px-4 py-6 grid lg:grid-cols-[400px_1fr] gap-6">
-        <Sidebar
-          settings={settings}
-          setSettings={setSettings}
-          onReset={resetDefaults}
-          ctrError={null}
-          headers={rawHeaders}
-          mapping={mapping}
-          onMappingChange={setMapping}
-          filters={filters}
-          setFilters={setFilters}
-        />
+          <Sidebar
+            settings={settings}
+            setSettings={setSettings}
+            onReset={resetDefaults}
+            ctrError={null}
+            headers={rawHeaders}
+            mapping={mapping}
+            onMappingChange={setMapping}
+            filters={filters}
+            setFilters={setFilters}
+            urls={urlOptions}
+          />
 
         <div className="space-y-6">
           <KPIs baseline={totals.baselineClicks} estimated={totals.estimatedClicks} incremental={totals.incrementalClicks} keywords={totals.keywords} improvingShare={totals.improvingShare} mcActive={settings.monteCarlo} />
@@ -94,10 +111,16 @@ export default function Index() {
   );
 }
 
-function filterBrand(r: KeywordRow, f: typeof DEFAULT_FILTERS) {
-  if (!f.brandOn || !f.brandTerms.trim()) return true;
-  const terms = f.brandTerms.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean);
-  const hay = `${r.keyword} ${(r.url ?? "")}`.toLowerCase();
-  const has = terms.some((t) => hay.includes(t));
-  return f.brandMode === "include" ? has : !has;
-}
+  function filterBrand(r: KeywordRow, f: typeof DEFAULT_FILTERS) {
+    if (!f.brandOn || !f.brandTerms.trim()) return true;
+    const terms = f.brandTerms.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean);
+    const hay = `${r.keyword} ${(r.url ?? "")}`.toLowerCase();
+    const has = terms.some((t) => hay.includes(t));
+    return f.brandMode === "include" ? has : !has;
+  }
+
+  function filterUrl(r: KeywordRow, f: typeof DEFAULT_FILTERS) {
+    if (!f.urlValue.trim()) return true;
+    const u = r.url ?? "";
+    return f.urlMode === "exact" ? u === f.urlValue : u.includes(f.urlValue);
+  }
