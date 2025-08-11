@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { DEFAULT_COHORTS } from "../../estimator/constants";
 import { ColumnMapping, CohortRule, CTRBuckets, EngineMode, ScoreWeights, SettingsState } from "../../estimator/types";
 
@@ -26,7 +27,7 @@ export function ColumnMapper({ headers, mapping, onChange }: ColumnMapperProps) 
 
   return (
     <Card className="p-4 space-y-3">
-      <h3 className="text-sm font-medium">Column Mapper</h3>
+      <h3 className="text-sm font-medium flex items-center gap-2">Column Mapper <HelpTooltip content="Map your file columns to required fields. Required: Keyword, Position, Volume. Others optional." /></h3>
       <div className="grid grid-cols-2 gap-3">
         {( ["keyword","position","volume","url","country","device","intent","kd","serpFeatures"] as (keyof ColumnMapping)[] ).map((key) => (
           <div key={key} className="space-y-1">
@@ -75,7 +76,10 @@ export default function Sidebar({ settings, setSettings, onReset, ctrError, head
 
       <Card className="p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <Label>Brand filter</Label>
+          <div className="flex items-center gap-2">
+            <Label>Brand filter</Label>
+            <HelpTooltip content="Filter keywords by brand terms. Include-only keeps matching rows; Exclude removes them." />
+          </div>
           <Switch checked={filters.brandOn} onCheckedChange={(v) => setFilters({ ...filters, brandOn: !!v })} />
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -89,13 +93,13 @@ export default function Sidebar({ settings, setSettings, onReset, ctrError, head
           <Input placeholder="brand1, brand2" value={filters.brandTerms} onChange={(e) => setFilters({ ...filters, brandTerms: e.target.value })} />
         </div>
         <div className="space-y-1">
-          <Label>Min Volume</Label>
+          <Label className="flex items-center gap-2">Min Volume <HelpTooltip content="Ignore keywords with monthly search volume below this threshold." /></Label>
           <Input type="number" value={filters.minVolume} onChange={(e) => setFilters({ ...filters, minVolume: Number(e.target.value || 0) })} />
         </div>
       </Card>
 
       <Card className="p-4 space-y-3">
-        <h3 className="text-sm font-medium">CTR by Bucket (%)</h3>
+        <h3 className="text-sm font-medium flex items-center gap-2">CTR by Bucket (%) <HelpTooltip content="Baseline CTRs for each position bucket. Values must be 0–100. Uplift applies only to improved buckets." /></h3>
         <div className="grid grid-cols-5 gap-2 text-xs">
           {(["B13","B46","B710","B1120","B21P"] as (keyof CTRBuckets)[]).map((k) => (
             <div key={k} className="space-y-1">
@@ -111,7 +115,7 @@ export default function Sidebar({ settings, setSettings, onReset, ctrError, head
         <TabsList className="grid grid-cols-2"><TabsTrigger value="heuristic">Heuristic</TabsTrigger><TabsTrigger value="score">Score</TabsTrigger></TabsList>
         <TabsContent value="heuristic">
           <Card className="p-4 space-y-3">
-            <h3 className="text-sm font-medium">Cohorts</h3>
+            <h3 className="text-sm font-medium flex items-center gap-2">Cohorts <HelpTooltip content="Heuristic cohorts assign improvement probabilities based on simple rules. Leftover probability goes to B1120; if sum > 1, you'll see an error." /></h3>
             {settings.cohorts.map((c, i) => {
               const sum = c.probs.B13 + c.probs.B46 + c.probs.B710 + c.probs.stay;
               const leftover = Math.max(0, 1 - sum);
@@ -138,7 +142,7 @@ export default function Sidebar({ settings, setSettings, onReset, ctrError, head
         </TabsContent>
         <TabsContent value="score">
           <Card className="p-4 space-y-4">
-            <h3 className="text-sm font-medium">Weights</h3>
+            <h3 className="text-sm font-medium flex items-center gap-2">Weights <HelpTooltip content="Adjust how features influence each bucket score; probabilities are computed via softmax. base_stay controls p(stay)." /></h3>
             {(["w1","w2","w3","w4","w5"] as (keyof ScoreWeights)[]).map((k) => (
               <div key={k} className="space-y-1">
                 <div className="flex justify-between text-xs"><Label>{k}</Label><span>{settings.weights[k].toFixed(2)}</span></div>
@@ -155,11 +159,11 @@ export default function Sidebar({ settings, setSettings, onReset, ctrError, head
 
       <Card className="p-4 space-y-4">
         <div className="space-y-1">
-          <div className="flex justify-between text-sm"><Label>Capacity Cap (%)</Label><span>{settings.capacityCapPct}%</span></div>
+          <div className="flex justify-between text-sm"><Label className="flex items-center gap-2">Capacity Cap (%) <HelpTooltip content="Maximum share of keywords allowed to improve in this period. Applied after probabilities." /></Label><span>{settings.capacityCapPct}%</span></div>
           <Slider value={[settings.capacityCapPct]} onValueChange={(v) => setSettings({ ...settings, capacityCapPct: v[0] })} min={0} max={100} step={1} />
         </div>
         <div className="space-y-1">
-          <Label>Effort</Label>
+          <Label className="flex items-center gap-2">Effort <HelpTooltip content="Overall execution intensity. Low reduces improvement probabilities; High increases them (then renormalized)." /></Label>
           <Select value={settings.effort} onValueChange={(v) => setSettings({ ...settings, effort: v as any })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -170,23 +174,23 @@ export default function Sidebar({ settings, setSettings, onReset, ctrError, head
           </Select>
         </div>
         <div className="space-y-1">
-          <Label>CTR uplift (pp)</Label>
+          <Label className="flex items-center gap-2">CTR uplift (pp) <HelpTooltip content="Absolute percentage points added to improved buckets only (never applied to 'stay')." /></Label>
           <Input type="number" value={settings.upliftPP} onChange={(e) => setSettings({ ...settings, upliftPP: Number(e.target.value || 0) })} />
         </div>
         <div className="space-y-1">
-          <Label>Click → Session factor</Label>
+          <Label className="flex items-center gap-2">Click → Session factor <HelpTooltip content="Multiplier to convert clicks to sessions; applied to both baseline and estimated totals." /></Label>
           <Input type="number" step="0.01" value={settings.clickToSession} onChange={(e) => setSettings({ ...settings, clickToSession: Number(e.target.value || 0) })} />
         </div>
         <Separator />
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <Label>Monte Carlo</Label>
+            <Label className="flex items-center gap-2">Monte Carlo <HelpTooltip content="Runs randomized simulations and reports median/P25/P75. Capacity cap is enforced per iteration." /></Label>
             <p className="text-[11px] text-muted-foreground">Randomized simulation</p>
           </div>
           <Switch checked={settings.monteCarlo} onCheckedChange={(v) => setSettings({ ...settings, monteCarlo: !!v })} />
         </div>
         <div className="space-y-1">
-          <Label>Iterations</Label>
+          <Label className="flex items-center gap-2">Iterations <HelpTooltip content="Number of Monte Carlo runs (more = smoother results, slower)." /></Label>
           <Input type="number" value={settings.iterations} onChange={(e) => setSettings({ ...settings, iterations: Number(e.target.value || 0) })} />
         </div>
         <Button variant="secondary" onClick={onReset}>Reset to Defaults</Button>

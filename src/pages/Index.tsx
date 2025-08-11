@@ -25,7 +25,7 @@ const DEFAULT_SETTINGS: SettingsState = {
 
 const DEFAULT_MAPPING: ColumnMapping = { keyword: "Keyword", position: "Position", volume: "Search Volume", url: "URL", country: "Country", device: "Device", intent: "Intent", kd: "KD", serpFeatures: "SERP Features" };
 
-const DEFAULT_FILTERS = { brandOn: false, brandMode: "exclude" as const, brandTerms: "", minVolume: 50, countryIn: [] as string[], deviceIn: [] as string[] };
+const DEFAULT_FILTERS = { brandOn: false, brandMode: "exclude", brandTerms: "", minVolume: 50, countryIn: [] as string[], deviceIn: [] as string[] };
 
 export default function Index() {
   const [rawHeaders, setRawHeaders] = useState<string[]>([]);

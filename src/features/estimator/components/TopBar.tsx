@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import FileUploader from "./FileUploader";
+import { HelpTooltip } from "@/components/HelpTooltip";
 
 interface Props {
   onFile: (file: File) => void;
@@ -16,12 +17,16 @@ export default function TopBar({ onFile, loadSample, setLoadSample }: Props) {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Switch checked={loadSample} onCheckedChange={(v) => setLoadSample(!!v)} />
-            <span className="text-sm">Load Sample Data</span>
+            <span className="text-sm flex items-center gap-2">Load Sample Data <HelpTooltip content="Quickly preview the app with ~30 demo rows; toggle off to go back to your file." /></span>
           </div>
-          <FileUploader onFile={onFile} />
+          <div className="flex items-center gap-2">
+            <FileUploader onFile={onFile} />
+            <HelpTooltip content="Upload a SEMrush CSV/XLSX export (first sheet). Then map the columns on the left." />
+          </div>
           <Button asChild variant="secondary"><a href="https://semrush.com" target="_blank" rel="noreferrer">SEMrush</a></Button>
         </div>
       </div>
     </header>
   );
 }
+
