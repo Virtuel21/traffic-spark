@@ -58,9 +58,10 @@ interface SidebarProps {
   urls: string[];
   countries: string[];
   devices: string[];
+  intents: string[];
 }
 
-export default function Sidebar({ settings, setSettings, onReset, ctrError, headers, mapping, onMappingChange, filters, setFilters, urls, countries, devices }: SidebarProps) {
+export default function Sidebar({ settings, setSettings, onReset, ctrError, headers, mapping, onMappingChange, filters, setFilters, urls, countries, devices, intents }: SidebarProps) {
   const sumErr = useMemo(() => validateCohorts(settings.cohorts), [settings.cohorts]);
 
   const setCTR = (k: keyof CTRBuckets, v: number) => setSettings({ ...settings, ctr: { ...settings.ctr, [k]: clamp(v, 0, 100) } });
@@ -136,6 +137,23 @@ export default function Sidebar({ settings, setSettings, onReset, ctrError, head
               <option key={d} value={d} />
             ))}
           </datalist>
+        </div>
+        <div className="space-y-1">
+          <Label className="flex items-center gap-2">Intention <HelpTooltip content="Filtrer les requêtes selon l'intention." /></Label>
+          <Input list="intent-options" placeholder="informational,commercial" value={filters.intentIn.join(",")}
+            onChange={(e) => setFilters({ ...filters, intentIn: e.target.value.split(',').map((c) => c.trim()).filter(Boolean) })} />
+          <datalist id="intent-options">
+            {intents.map((i) => (
+              <option key={i} value={i} />
+            ))}
+          </datalist>
+        </div>
+        <div className="space-y-1">
+          <Label className="flex items-center gap-2">Plage de position <HelpTooltip content="Inclure seulement les positions dans cet intervalle." /></Label>
+          <div className="grid grid-cols-2 gap-3">
+            <Input type="number" value={filters.positionRange[0]} onChange={(e) => setFilters({ ...filters, positionRange: [Number(e.target.value || 0), filters.positionRange[1]] })} />
+            <Input type="number" value={filters.positionRange[1]} onChange={(e) => setFilters({ ...filters, positionRange: [filters.positionRange[0], Number(e.target.value || 0)] })} />
+          </div>
         </div>
         <div className="space-y-1">
           <Label className="flex items-center gap-2">Filtre URL <HelpTooltip content="Afficher uniquement les lignes dont l'URL contient ou correspond à ce texte." /></Label>
