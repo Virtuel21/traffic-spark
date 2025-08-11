@@ -52,10 +52,30 @@ export function scoreProbs(row: KeywordRow, weights: ScoreWeights) {
   const contentMatch = 0; // placeholder, not available
   const linkGapStd = 0; // placeholder, not available
 
-  const s13 = 0 + weights.w1 * (-gap(centers.B13)) + weights.w2 * (-kdStd) + weights.w3 * (-serpStd) + weights.w4 * contentMatch + weights.w5 * (-linkGapStd);
-  const s46 = 0 + weights.w1 * (-gap(centers.B46)) + weights.w2 * (-kdStd) + weights.w3 * (-serpStd) + weights.w4 * contentMatch + weights.w5 * (-linkGapStd);
-  const s710 = 0 + weights.w1 * (-gap(centers.B710)) + weights.w2 * (-kdStd) + weights.w3 * (-serpStd) + weights.w4 * contentMatch + weights.w5 * (-linkGapStd);
-  const s1120 = 0 + weights.w1 * (-gap(centers.B1120)) + weights.w2 * (-kdStd) + weights.w3 * (-serpStd) + weights.w4 * contentMatch + weights.w5 * (-linkGapStd);
+  const s13 = 0
+    + weights.positionGap * (-gap(centers.B13))
+    + weights.keywordDifficulty * (-kdStd)
+    + weights.serpComplexity * (-serpStd)
+    + weights.contentMatch * contentMatch
+    + weights.linkGap * (-linkGapStd);
+  const s46 = 0
+    + weights.positionGap * (-gap(centers.B46))
+    + weights.keywordDifficulty * (-kdStd)
+    + weights.serpComplexity * (-serpStd)
+    + weights.contentMatch * contentMatch
+    + weights.linkGap * (-linkGapStd);
+  const s710 = 0
+    + weights.positionGap * (-gap(centers.B710))
+    + weights.keywordDifficulty * (-kdStd)
+    + weights.serpComplexity * (-serpStd)
+    + weights.contentMatch * contentMatch
+    + weights.linkGap * (-linkGapStd);
+  const s1120 = 0
+    + weights.positionGap * (-gap(centers.B1120))
+    + weights.keywordDifficulty * (-kdStd)
+    + weights.serpComplexity * (-serpStd)
+    + weights.contentMatch * contentMatch
+    + weights.linkGap * (-linkGapStd);
 
   const exps = softmax([s13, s46, s710, s1120]);
   const [B13, B46, B710, B1120] = exps;

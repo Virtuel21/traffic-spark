@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import FileUploader from "./FileUploader";
 import { HelpTooltip } from "@/components/HelpTooltip";
+import { Link } from "react-router-dom";
 
 interface Props {
   onFile: (file: File) => void;
@@ -24,6 +25,7 @@ export default function TopBar({ onFile, loadSample, setLoadSample }: Props) {
             <HelpTooltip content="Upload a SEMrush CSV/XLSX export (first sheet). Then map the columns on the left." />
           </div>
           <Button asChild variant="secondary"><a href="https://semrush.com" target="_blank" rel="noreferrer">SEMrush</a></Button>
+          <Link to="/manual" className="text-sm underline">Mode d'emploi</Link>
         </div>
       </div>
     </header>

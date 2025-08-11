@@ -68,6 +68,15 @@ export default function Sidebar({ settings, setSettings, onReset, ctrError, head
     setSettings({ ...settings, cohorts: list });
   };
 
+  const weightLabels: Record<keyof ScoreWeights, string> = {
+    positionGap: "Position gap",
+    keywordDifficulty: "Keyword difficulty",
+    serpComplexity: "SERP complexity",
+    contentMatch: "Content match",
+    linkGap: "Link gap",
+    base_stay: "Base stay",
+  };
+
   return (
     <aside className="w-full lg:w-[360px] xl:w-[400px] shrink-0 p-4 space-y-4 bg-card/60 backdrop-blur rounded-lg border" aria-label="Controls sidebar">
       <h2 className="text-lg font-semibold">Settings</h2>
@@ -141,19 +150,19 @@ export default function Sidebar({ settings, setSettings, onReset, ctrError, head
           </Card>
         </TabsContent>
         <TabsContent value="score">
-          <Card className="p-4 space-y-4">
-            <h3 className="text-sm font-medium flex items-center gap-2">Weights <HelpTooltip content="Adjust how features influence each bucket score; probabilities are computed via softmax. base_stay controls p(stay)." /></h3>
-            {(["w1","w2","w3","w4","w5"] as (keyof ScoreWeights)[]).map((k) => (
-              <div key={k} className="space-y-1">
-                <div className="flex justify-between text-xs"><Label>{k}</Label><span>{settings.weights[k].toFixed(2)}</span></div>
-                <Slider value={[settings.weights[k]]} onValueChange={(v) => setWeights({ [k]: v[0] } as any)} min={0} max={1} step={0.01} />
+            <Card className="p-4 space-y-4">
+              <h3 className="text-sm font-medium flex items-center gap-2">Weights <HelpTooltip content="Adjust how features influence each bucket score; probabilities are computed via softmax. base_stay controls p(stay)." /></h3>
+              {(["positionGap","keywordDifficulty","serpComplexity","contentMatch","linkGap"] as (keyof ScoreWeights)[]).map((k) => (
+                <div key={k} className="space-y-1">
+                  <div className="flex justify-between text-xs"><Label>{weightLabels[k]}</Label><span>{settings.weights[k].toFixed(2)}</span></div>
+                  <Slider value={[settings.weights[k]]} onValueChange={(v) => setWeights({ [k]: v[0] } as any)} min={0} max={1} step={0.01} />
+                </div>
+              ))}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs"><Label>base_stay</Label><span>{settings.weights.base_stay.toFixed(2)}</span></div>
+                <Slider value={[settings.weights.base_stay]} onValueChange={(v) => setWeights({ base_stay: v[0] })} min={0} max={0.6} step={0.01} />
               </div>
-            ))}
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs"><Label>base_stay</Label><span>{settings.weights.base_stay.toFixed(2)}</span></div>
-              <Slider value={[settings.weights.base_stay]} onValueChange={(v) => setWeights({ base_stay: v[0] })} min={0} max={0.6} step={0.01} />
-            </div>
-          </Card>
+            </Card>
         </TabsContent>
       </Tabs>
 

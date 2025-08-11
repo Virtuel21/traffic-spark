@@ -50,7 +50,12 @@ export interface CohortRule {
 }
 
 export interface ScoreWeights {
-  w1: number; w2: number; w3: number; w4: number; w5: number; base_stay: number;
+  positionGap: number;
+  keywordDifficulty: number;
+  serpComplexity: number;
+  contentMatch: number;
+  linkGap: number;
+  base_stay: number;
 }
 
 export interface FiltersState {
