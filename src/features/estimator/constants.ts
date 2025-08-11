@@ -40,10 +40,10 @@ export const DEFAULT_COHORTS: CohortRule[] = [
 ];
 
 export const DEFAULT_WEIGHTS: ScoreWeights = {
-  w1: 0.35,
-  w2: 0.25,
-  w3: 0.3,
-  w4: 0.2,
-  w5: 0.25,
+  positionGap: 0.35,
+  keywordDifficulty: 0.25,
+  serpComplexity: 0.3,
+  contentMatch: 0.2,
+  linkGap: 0.25,
   base_stay: 0.15,
 };
