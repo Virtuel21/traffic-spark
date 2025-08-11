@@ -9,6 +9,8 @@ import { DEFAULT_COHORTS, DEFAULT_CTR, DEFAULT_WEIGHTS } from "@/features/estima
 import { ColumnMapping, KeywordRow, SettingsState, TableRow } from "@/features/estimator/types";
 import { exportTableCSV, exportTableXLSX } from "@/features/estimator/export";
 import { generateSampleRows } from "@/features/estimator/sample";
+import { BRAND_INDEX } from "@/lib/brandIndex";
+import { distance as levenshtein } from "fastest-levenshtein";
 
 const DEFAULT_SETTINGS: SettingsState = {
   ctr: DEFAULT_CTR,
@@ -60,11 +62,15 @@ export default function Index() {
   }, [rawRows, mapping]);
 
   const urlOptions = useMemo(() => Array.from(new Set(mapped.map((r) => r.url).filter(Boolean))) as string[], [mapped]);
+  const countryOptions = useMemo(() => Array.from(new Set(mapped.map((r) => r.country).filter(Boolean))) as string[], [mapped]);
+  const deviceOptions = useMemo(() => Array.from(new Set(mapped.map((r) => r.device).filter(Boolean))) as string[], [mapped]);
 
   const cleaned: KeywordRow[] = useMemo(() => {
     return mapped
       .filter((r) => r.volume >= (filters.minVolume || 0))
       .filter((r) => filterBrand(r, filters))
+      .filter((r) => filterCountry(r, filters))
+      .filter((r) => filterDevice(r, filters))
       .filter((r) => filterUrl(r, filters));
   }, [mapped, filters]);
 
@@ -94,14 +100,16 @@ export default function Index() {
             filters={filters}
             setFilters={setFilters}
             urls={urlOptions}
-          />
+            countries={countryOptions}
+            devices={deviceOptions}
+         />
 
         <div className="space-y-6">
           <KPIs baseline={totals.baselineClicks} estimated={totals.estimatedClicks} incremental={totals.incrementalClicks} keywords={totals.keywords} improvingShare={totals.improvingShare} mcActive={settings.monteCarlo} />
 
           <div className="flex gap-2">
-            <button className="px-3 py-2 rounded-md border" onClick={() => exportTableCSV(table)}>Export CSV</button>
-            <button className="px-3 py-2 rounded-md border" onClick={() => exportTableXLSX(table)}>Export XLSX</button>
+            <button className="px-3 py-2 rounded-md border" onClick={() => exportTableCSV(table)}>Exporter CSV</button>
+            <button className="px-3 py-2 rounded-md border" onClick={() => exportTableXLSX(table)}>Exporter XLSX</button>
           </div>
 
           <DataTable rows={table as TableRow[]} />
@@ -112,11 +120,28 @@ export default function Index() {
 }
 
   function filterBrand(r: KeywordRow, f: typeof DEFAULT_FILTERS) {
-    if (!f.brandOn || !f.brandTerms.trim()) return true;
-    const terms = f.brandTerms.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean);
+    if (!f.brandOn) return true;
+    const manual = f.brandTerms.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean);
+    const terms = Array.from(new Set([...BRAND_INDEX, ...manual]));
     const hay = `${r.keyword} ${(r.url ?? "")}`.toLowerCase();
-    const has = terms.some((t) => hay.includes(t));
+    const words = hay.split(/\W+/);
+    const has = terms.some((t) => {
+      if (hay.includes(t)) return true;
+      return words.some((w) => levenshtein(w, t) <= (t.length > 5 ? 2 : 1));
+    });
     return f.brandMode === "include" ? has : !has;
+  }
+
+  function filterCountry(r: KeywordRow, f: typeof DEFAULT_FILTERS) {
+    if (!f.countryIn.length) return true;
+    const c = String(r.country ?? "");
+    return f.countryIn.includes(c);
+  }
+
+  function filterDevice(r: KeywordRow, f: typeof DEFAULT_FILTERS) {
+    if (!f.deviceIn.length) return true;
+    const d = String(r.device ?? "");
+    return f.deviceIn.includes(d);
   }
 
   function filterUrl(r: KeywordRow, f: typeof DEFAULT_FILTERS) {

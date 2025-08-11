@@ -5,22 +5,23 @@ import { TableRow as RowType } from "../../estimator/types";
 
 interface Props { rows: RowType[]; height?: number; }
 
-const COLS: { key: keyof RowType | "baselineBucket" | "expectedBucket" | "baselineCTR" | "incrementalClicks" | "estimatedClicks" | "baselineClicks"; label: string; width: number; help?: string }[] = [
-  { key: "keyword", label: "Keyword", width: 320, help: "The search query term." },
-  { key: "position", label: "Pos", width: 60, help: "Current Google rank (1–100)." },
-  { key: "volume", label: "Vol", width: 90, help: "Monthly search volume." },
-  { key: "cohort", label: "Cohort", width: 160, help: "Assigned improvement cohort." },
-  { key: "baselineBucket", label: "Base Bucket", width: 110, help: "Bucket of the current position (1–3, 4–6, …)." },
-  { key: "baselineCTR", label: "Base CTR%", width: 100, help: "CTR of the current bucket." },
-  { key: "expectedBucket", label: "Exp Bucket", width: 110, help: "Expected destination bucket from the model." },
-  { key: "baselineClicks", label: "Base Clicks", width: 120, help: "Volume × Base CTR." },
-  { key: "estimatedClicks", label: "Est Clicks", width: 120, help: "Volume × Expected CTR." },
-  { key: "incrementalClicks", label: "Incr", width: 110, help: "Estimated − Baseline (≥ 0)." },
+const COLS: { key: keyof RowType | "baselineBucket" | "expectedBucket" | "baselineCTR" | "incrementalClicks" | "estimatedClicks" | "baselineClicks" | "expectedPosition"; label: string; width: number; help?: string }[] = [
+  { key: "keyword", label: "Mot-clé", width: 320, help: "La requête recherchée." },
+  { key: "position", label: "Pos", width: 60, help: "Position Google actuelle (1–100)." },
+  { key: "volume", label: "Volume", width: 90, help: "Volume de recherche mensuel." },
+  { key: "cohort", label: "Cohorte", width: 160, help: "Cohorte d'amélioration attribuée." },
+  { key: "baselineBucket", label: "Groupe actuel", width: 110, help: "Groupe de la position actuelle (1–3, 4–6, …)." },
+  { key: "baselineCTR", label: "CTR base %", width: 100, help: "CTR du groupe actuel." },
+  { key: "expectedBucket", label: "Groupe cible", width: 110, help: "Groupe attendu d'après le modèle." },
+  { key: "expectedPosition", label: "Pos cible", width: 80, help: "Position estimée associée au groupe cible." },
+  { key: "baselineClicks", label: "Sessions de base", width: 120, help: "Volume × CTR de base." },
+  { key: "estimatedClicks", label: "Sessions estimées", width: 120, help: "Volume × CTR attendu." },
+  { key: "incrementalClicks", label: "Gain", width: 110, help: "Estimé − Base (≥ 0)." },
   { key: "url", label: "URL", width: 260 },
-  { key: "country", label: "Country", width: 100 },
-  { key: "device", label: "Device", width: 100 },
-  { key: "intent", label: "Intent", width: 100 },
-  { key: "kd", label: "KD", width: 80, help: "Keyword difficulty." },
+  { key: "country", label: "Pays", width: 100 },
+  { key: "device", label: "Appareil", width: 100 },
+  { key: "intent", label: "Intention", width: 100 },
+  { key: "kd", label: "KD", width: 80, help: "Difficulté du mot-clé." },
 ];
 
 export default function DataTable({ rows, height = 520 }: Props) {
@@ -75,6 +76,7 @@ function formatCell(r: RowType, key: any) {
   if (typeof v === "number") {
     if (key === "baselineCTR") return v.toFixed(2);
     if (key.toString().includes("Clicks")) return Math.round(v).toLocaleString();
+    if (key === "expectedPosition") return Math.round(v);
   }
   return v ?? "";
 }

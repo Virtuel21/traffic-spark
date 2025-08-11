@@ -91,6 +91,7 @@ export interface RowDerived {
   estimatedClicks: number;
   incrementalClicks: number;
   expectedBucket?: Bucket;
+  expectedPosition?: number;
 }
 
 export interface TableRow extends KeywordRow, RowDerived {}
