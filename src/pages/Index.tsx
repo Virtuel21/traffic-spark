@@ -34,6 +34,8 @@ const DEFAULT_FILTERS = {
   minVolume: 50,
   countryIn: [] as string[],
   deviceIn: [] as string[],
+  intentIn: [] as string[],
+  positionRange: [1,100] as [number, number],
   urlMode: "contains" as "contains" | "exact",
   urlValue: "",
 };
@@ -64,6 +66,7 @@ export default function Index() {
   const urlOptions = useMemo(() => Array.from(new Set(mapped.map((r) => r.url).filter(Boolean))) as string[], [mapped]);
   const countryOptions = useMemo(() => Array.from(new Set(mapped.map((r) => r.country).filter(Boolean))) as string[], [mapped]);
   const deviceOptions = useMemo(() => Array.from(new Set(mapped.map((r) => r.device).filter(Boolean))) as string[], [mapped]);
+  const intentOptions = useMemo(() => Array.from(new Set(mapped.map((r) => r.intent).filter(Boolean))) as string[], [mapped]);
 
   const cleaned: KeywordRow[] = useMemo(() => {
     return mapped
@@ -71,6 +74,8 @@ export default function Index() {
       .filter((r) => filterBrand(r, filters))
       .filter((r) => filterCountry(r, filters))
       .filter((r) => filterDevice(r, filters))
+      .filter((r) => filterIntent(r, filters))
+      .filter((r) => filterPosition(r, filters))
       .filter((r) => filterUrl(r, filters));
   }, [mapped, filters]);
 
@@ -102,6 +107,7 @@ export default function Index() {
             urls={urlOptions}
             countries={countryOptions}
             devices={deviceOptions}
+            intents={intentOptions}
          />
 
         <div className="space-y-6">
@@ -142,6 +148,17 @@ export default function Index() {
     if (!f.deviceIn.length) return true;
     const d = String(r.device ?? "");
     return f.deviceIn.includes(d);
+  }
+
+  function filterIntent(r: KeywordRow, f: typeof DEFAULT_FILTERS) {
+    if (!f.intentIn.length) return true;
+    const i = String(r.intent ?? "");
+    return f.intentIn.includes(i);
+  }
+
+  function filterPosition(r: KeywordRow, f: typeof DEFAULT_FILTERS) {
+    const [min, max] = f.positionRange;
+    return r.position >= min && r.position <= max;
   }
 
   function filterUrl(r: KeywordRow, f: typeof DEFAULT_FILTERS) {

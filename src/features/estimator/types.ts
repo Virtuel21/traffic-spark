@@ -65,6 +65,8 @@ export interface FiltersState {
     minVolume: number;
     countryIn: string[];
     deviceIn: string[];
+    intentIn: string[];
+    positionRange: [number, number];
     urlMode: "contains" | "exact";
     urlValue: string;
   }
