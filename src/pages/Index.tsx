@@ -4,6 +4,7 @@ import Sidebar from "@/features/estimator/components/Sidebar";
 import KPIs from "@/features/estimator/components/KPIs";
 import DataTable from "@/features/estimator/components/DataTable";
 import TopicTable from "@/features/estimator/components/TopicTable";
+import { categorizeKeywords } from "@/lib/gemini";
 import PerformanceSummary from "@/features/estimator/components/PerformanceSummary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { parseFile, mapAndClean } from "@/features/estimator/parser";
@@ -82,19 +83,26 @@ export default function Index() {
   }, [mapped, filters]);
 
   const { table, totals } = useMemo(() => computeTable(cleaned, settings), [cleaned, settings]);
-  const topicRows: TopicRow[] = useMemo(() => {
-    const m = new Map<string, TopicRow>();
-    table.forEach((r) => {
-      const topic = r.keyword.split(/\s+/)[0]?.toLowerCase() || "";
-      if (!topic) return;
-      const cur = m.get(topic) || { topic, keywords: 0, baselineClicks: 0, estimatedClicks: 0, incrementalClicks: 0 };
-      cur.keywords += 1;
-      cur.baselineClicks += r.baselineClicks;
-      cur.estimatedClicks += r.estimatedClicks;
-      cur.incrementalClicks += r.incrementalClicks;
-      m.set(topic, cur);
-    });
-    return Array.from(m.values()).sort((a, b) => b.incrementalClicks - a.incrementalClicks);
+
+  const [topicRows, setTopicRows] = useState<TopicRow[]>([]);
+
+  useEffect(() => {
+    async function computeTopics() {
+      const mapping = await categorizeKeywords(table.map((r) => r.keyword));
+      const m = new Map<string, TopicRow>();
+      table.forEach((r) => {
+        const topic = mapping[r.keyword] || r.keyword.split(/\s+/)[0]?.toLowerCase() || "";
+        if (!topic) return;
+        const cur = m.get(topic) || { topic, keywords: 0, baselineClicks: 0, estimatedClicks: 0, incrementalClicks: 0 };
+        cur.keywords += 1;
+        cur.baselineClicks += r.baselineClicks;
+        cur.estimatedClicks += r.estimatedClicks;
+        cur.incrementalClicks += r.incrementalClicks;
+        m.set(topic, cur);
+      });
+      setTopicRows(Array.from(m.values()).sort((a, b) => b.incrementalClicks - a.incrementalClicks));
+    }
+    computeTopics();
   }, [table]);
   const [tableHeight, setTableHeight] = useState(520);
   const [view, setView] = useState("keywords");
@@ -181,13 +189,12 @@ export default function Index() {
   function filterBrand(r: KeywordRow, f: typeof DEFAULT_FILTERS) {
     if (!f.brandOn) return true;
     const manual = f.brandTerms.split(",").map((t) => normalizeText(t.trim())).filter(Boolean);
-    const terms = Array.from(new Set([...BRAND_INDEX, ...manual])).map(normalizeText);
+    const terms = Array.from(new Set([...BRAND_INDEX, ...manual]))
+      .map((t) => normalizeText(t.trim()))
+      .filter(Boolean);
     const hay = normalizeText(`${r.keyword} ${(r.url ?? "")}`);
-    const words = hay.split(/\W+/);
-    const has = terms.some((t) => {
-      if (hay.includes(t)) return true;
-      return words.some((w) => levenshtein(w, t) <= (t.length > 5 ? 2 : 1));
-    });
+    const words = hay.split(/\W+/).filter(Boolean);
+    const has = terms.some((t) => words.some((w) => levenshtein(w, t) <= (t.length > 5 ? 2 : 1)));
     return f.brandMode === "include" ? has : !has;
   }
 
