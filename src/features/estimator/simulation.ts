@@ -87,4 +87,11 @@ function assignRule(row: KeywordRow, settings: SettingsState) {
 }
 
 function shuffle<T>(arr: T[]) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } }
-function quantile(arr: number[], q: number) { const idx = Math.floor((arr.length - 1) * q); return arr[idx] ?? 0; }
+function quantile(arr: number[], q: number) {
+  if (!arr.length) return 0;
+  const pos = (arr.length - 1) * q;
+  const base = Math.floor(pos);
+  const rest = pos - base;
+  const next = arr[base + 1] ?? arr[base];
+  return arr[base] + rest * (next - arr[base]);
+}
