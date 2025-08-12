@@ -13,6 +13,7 @@ import { ColumnMapping, KeywordRow, SettingsState, TableRow } from "@/features/e
 import { exportTableCSV, exportTableXLSX } from "@/features/estimator/export";
 import { generateSampleRows } from "@/features/estimator/sample";
 import { BRAND_INDEX } from "@/lib/brandIndex";
+import { normalizeText } from "@/lib/utils";
 import { distance as levenshtein } from "fastest-levenshtein";
 
 const DEFAULT_SETTINGS: SettingsState = {
@@ -161,9 +162,9 @@ export default function Index() {
 
   function filterBrand(r: KeywordRow, f: typeof DEFAULT_FILTERS) {
     if (!f.brandOn) return true;
-    const manual = f.brandTerms.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean);
-    const terms = Array.from(new Set([...BRAND_INDEX, ...manual]));
-    const hay = `${r.keyword} ${(r.url ?? "")}`.toLowerCase();
+    const manual = f.brandTerms.split(",").map((t) => normalizeText(t.trim())).filter(Boolean);
+    const terms = Array.from(new Set([...BRAND_INDEX, ...manual])).map(normalizeText);
+    const hay = normalizeText(`${r.keyword} ${(r.url ?? "")}`);
     const words = hay.split(/\W+/);
     const has = terms.some((t) => {
       if (hay.includes(t)) return true;
