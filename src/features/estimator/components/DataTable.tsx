@@ -1,7 +1,8 @@
 import { FixedSizeList as List, ListChildComponentProps } from "react-window";
 import { Card } from "@/components/ui/card";
 import { HelpTooltip } from "@/components/HelpTooltip";
-import { TableRow as RowType } from "../../estimator/types";
+import { Bucket, TableRow as RowType } from "../../estimator/types";
+import { BUCKET_LABELS } from "../../estimator/constants";
 
 interface Props { rows: RowType[]; height?: number; }
 
@@ -73,6 +74,9 @@ export default function DataTable({ rows, height = 520 }: Props) {
 
 function formatCell(r: RowType, key: any) {
   const v = (r as any)[key];
+  if (key === "baselineBucket" || key === "expectedBucket") {
+    return v ? BUCKET_LABELS[v as Bucket] : "";
+  }
   if (typeof v === "number") {
     if (key === "baselineCTR") return v.toFixed(2);
     if (key.toString().includes("Clicks")) return Math.round(v).toLocaleString();

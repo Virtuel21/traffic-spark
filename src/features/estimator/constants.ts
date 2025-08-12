@@ -1,4 +1,12 @@
-import { CTRBuckets, CohortRule, ScoreWeights } from "./types";
+import { Bucket, CTRBuckets, CohortRule, ScoreWeights } from "./types";
+
+export const BUCKET_LABELS: Record<Bucket, string> = {
+  B13: "1–3",
+  B46: "4–6",
+  B710: "7–10",
+  B1120: "11–20",
+  B21P: "21+",
+};
 
 export const DEFAULT_CTR: CTRBuckets = {
   B13: 22,
