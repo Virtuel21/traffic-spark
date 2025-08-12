@@ -140,8 +140,6 @@ export default function Index() {
             estimated={totals.estimatedClicks}
             incremental={totals.incrementalClicks}
             engine={settings.engine}
-            mcActive={settings.monteCarlo}
-            mcStats={mc?.stats}
             capacity={settings.capacityCapPct}
             effort={settings.effort}
             uplift={settings.upliftPP}
