@@ -3,13 +3,13 @@ import TopBar from "@/features/estimator/components/TopBar";
 import Sidebar from "@/features/estimator/components/Sidebar";
 import KPIs from "@/features/estimator/components/KPIs";
 import DataTable from "@/features/estimator/components/DataTable";
-import MonteCarloPanel from "@/features/estimator/components/MonteCarloPanel";
+import TopicTable from "@/features/estimator/components/TopicTable";
 import PerformanceSummary from "@/features/estimator/components/PerformanceSummary";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { parseFile, mapAndClean } from "@/features/estimator/parser";
 import { computeTable } from "@/features/estimator/model";
-import { monteCarlo } from "@/features/estimator/simulation";
 import { DEFAULT_COHORTS, DEFAULT_CTR, DEFAULT_WEIGHTS } from "@/features/estimator/constants";
-import { ColumnMapping, KeywordRow, SettingsState, TableRow } from "@/features/estimator/types";
+import { ColumnMapping, KeywordRow, SettingsState, TableRow, TopicRow } from "@/features/estimator/types";
 import { exportTableCSV, exportTableXLSX } from "@/features/estimator/export";
 import { generateSampleRows } from "@/features/estimator/sample";
 import { BRAND_INDEX } from "@/lib/brandIndex";
@@ -24,8 +24,6 @@ const DEFAULT_SETTINGS: SettingsState = {
   weights: DEFAULT_WEIGHTS,
   capacityCapPct: 40,
   effort: "medium",
-  monteCarlo: false,
-  iterations: 500,
   clickToSession: 1.0,
 };
 
@@ -84,8 +82,22 @@ export default function Index() {
   }, [mapped, filters]);
 
   const { table, totals } = useMemo(() => computeTable(cleaned, settings), [cleaned, settings]);
-  const mc = useMemo(() => settings.monteCarlo ? monteCarlo(cleaned, settings, settings.iterations) : null, [cleaned, settings]);
+  const topicRows: TopicRow[] = useMemo(() => {
+    const m = new Map<string, TopicRow>();
+    table.forEach((r) => {
+      const topic = r.keyword.split(/\s+/)[0]?.toLowerCase() || "";
+      if (!topic) return;
+      const cur = m.get(topic) || { topic, keywords: 0, baselineClicks: 0, estimatedClicks: 0, incrementalClicks: 0 };
+      cur.keywords += 1;
+      cur.baselineClicks += r.baselineClicks;
+      cur.estimatedClicks += r.estimatedClicks;
+      cur.incrementalClicks += r.incrementalClicks;
+      m.set(topic, cur);
+    });
+    return Array.from(m.values()).sort((a, b) => b.incrementalClicks - a.incrementalClicks);
+  }, [table]);
   const [tableHeight, setTableHeight] = useState(520);
+  const [view, setView] = useState("keywords");
 
   useEffect(() => {
     const calc = () => setTableHeight(Math.max(200, window.innerHeight - 340));
@@ -132,8 +144,6 @@ export default function Index() {
             incremental={totals.incrementalClicks}
             keywords={totals.keywords}
             improvingShare={totals.improvingShare}
-            mcActive={settings.monteCarlo}
-            mcStats={mc?.stats}
           />
 
           <PerformanceSummary
@@ -146,14 +156,22 @@ export default function Index() {
             uplift={settings.upliftPP}
           />
 
-          {settings.monteCarlo && mc ? <MonteCarloPanel stats={mc.stats} series={mc.series} /> : null}
-
-          <div className="flex gap-2">
-            <button className="px-3 py-2 rounded-md border" onClick={() => exportTableCSV(table)}>Exporter CSV</button>
-            <button className="px-3 py-2 rounded-md border" onClick={() => exportTableXLSX(table)}>Exporter XLSX</button>
-          </div>
-
-          <DataTable rows={table as TableRow[]} height={tableHeight} />
+          <Tabs value={view} onValueChange={setView} className="space-y-4">
+            <TabsList className="w-fit">
+              <TabsTrigger value="keywords">Mots-clés</TabsTrigger>
+              <TabsTrigger value="topics">Topics</TabsTrigger>
+            </TabsList>
+            <TabsContent value="keywords" className="space-y-4">
+              <div className="flex gap-2">
+                <button className="px-3 py-2 rounded-md border" onClick={() => exportTableCSV(table)}>Exporter CSV</button>
+                <button className="px-3 py-2 rounded-md border" onClick={() => exportTableXLSX(table)}>Exporter XLSX</button>
+              </div>
+              <DataTable rows={table as TableRow[]} height={tableHeight} />
+            </TabsContent>
+            <TabsContent value="topics">
+              <TopicTable rows={topicRows} height={tableHeight} />
+            </TabsContent>
+          </Tabs>
         </div>
       </section>
     </main>

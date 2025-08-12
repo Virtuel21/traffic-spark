@@ -3,11 +3,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { BUCKET_LABELS, DEFAULT_COHORTS } from "../../estimator/constants";
 import { ColumnMapping, CohortRule, CTRBuckets, EngineMode, ScoreWeights, SettingsState, FiltersState } from "../../estimator/types";
@@ -259,18 +258,6 @@ export default function Sidebar({ settings, setSettings, onReset, ctrError, head
         <div className="space-y-1">
           <Label className="flex items-center gap-2">Facteur Clic → Session <HelpTooltip content="Multiplicateur pour convertir les clics en sessions; appliqué aux totaux de base et estimés." /></Label>
           <Input type="number" step="0.01" value={settings.clickToSession} onChange={(e) => setSettings({ ...settings, clickToSession: Number(e.target.value || 0) })} />
-        </div>
-        <Separator />
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <Label className="flex items-center gap-2">Monte Carlo <HelpTooltip content="Lance des simulations aléatoires et fournit médiane/P25/P75. La limite de capacité est appliquée à chaque itération." /></Label>
-            <p className="text-[11px] text-muted-foreground">Simulation aléatoire</p>
-          </div>
-          <Switch checked={settings.monteCarlo} onCheckedChange={(v) => setSettings({ ...settings, monteCarlo: !!v })} />
-        </div>
-        <div className="space-y-1">
-          <Label className="flex items-center gap-2">Itérations <HelpTooltip content="Nombre d'exécutions Monte Carlo (plus = résultat plus stable, mais plus lent)." /></Label>
-          <Input type="number" value={settings.iterations} onChange={(e) => setSettings({ ...settings, iterations: Number(e.target.value || 0) })} />
         </div>
         <Button variant="secondary" onClick={onReset}>Réinitialiser</Button>
       </Card>

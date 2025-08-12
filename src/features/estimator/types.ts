@@ -79,8 +79,6 @@ export interface SettingsState {
   weights: ScoreWeights;
   capacityCapPct: number; // 0-100
   effort: "low" | "medium" | "high";
-  monteCarlo: boolean;
-  iterations: number;
   clickToSession: number;
 }
 
@@ -106,6 +104,10 @@ export interface Totals {
   improvingShare: number; // 0-1
 }
 
-export interface MCStats {
-  median: number; p25: number; p75: number;
+export interface TopicRow {
+  topic: string;
+  keywords: number;
+  baselineClicks: number;
+  estimatedClicks: number;
+  incrementalClicks: number;
 }
