@@ -15,7 +15,6 @@ import { exportTableCSV, exportTableXLSX } from "@/features/estimator/export";
 import { generateSampleRows } from "@/features/estimator/sample";
 import { BRAND_INDEX } from "@/lib/brandIndex";
 import { normalizeText } from "@/lib/utils";
-import { distance as levenshtein } from "fastest-levenshtein";
 
 const DEFAULT_SETTINGS: SettingsState = {
   ctr: DEFAULT_CTR,
@@ -192,9 +191,14 @@ export default function Index() {
     const terms = Array.from(new Set([...BRAND_INDEX, ...manual]))
       .map((t) => normalizeText(t.trim()))
       .filter(Boolean);
-    const hay = normalizeText(`${r.keyword} ${(r.url ?? "")}`);
-    const words = hay.split(/\W+/).filter(Boolean);
-    const has = terms.some((t) => words.some((w) => levenshtein(w, t) <= (t.length > 5 ? 2 : 1)));
+
+    const hay = normalizeText(`${r.keyword} ${(r.url ?? "")}`)
+      .split(/\W+/)
+      .filter(Boolean)
+      .join(" ");
+    const paddedHay = ` ${hay} `;
+
+    const has = terms.some((t) => paddedHay.includes(` ${t} `));
     return f.brandMode === "include" ? has : !has;
   }
 
