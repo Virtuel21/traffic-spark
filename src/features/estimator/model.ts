@@ -51,35 +51,28 @@ export function scoreProbs(row: KeywordRow, weights: ScoreWeights) {
   const serpStd = (serpDiff - 2) / 3; // heuristic scale
   const contentMatch = 0; // placeholder, not available
   const linkGapStd = 0; // placeholder, not available
-
-  const s13 = 0
-    + weights.positionGap * (-gap(centers.B13))
-    + weights.keywordDifficulty * (-kdStd)
-    + weights.serpComplexity * (-serpStd)
+  const s13 = weights.positionGap * (-gap(centers.B13))
     + weights.contentMatch * contentMatch
     + weights.linkGap * (-linkGapStd);
-  const s46 = 0
-    + weights.positionGap * (-gap(centers.B46))
-    + weights.keywordDifficulty * (-kdStd)
-    + weights.serpComplexity * (-serpStd)
+  const s46 = weights.positionGap * (-gap(centers.B46))
     + weights.contentMatch * contentMatch
     + weights.linkGap * (-linkGapStd);
-  const s710 = 0
-    + weights.positionGap * (-gap(centers.B710))
-    + weights.keywordDifficulty * (-kdStd)
-    + weights.serpComplexity * (-serpStd)
+  const s710 = weights.positionGap * (-gap(centers.B710))
     + weights.contentMatch * contentMatch
     + weights.linkGap * (-linkGapStd);
-  const s1120 = 0
-    + weights.positionGap * (-gap(centers.B1120))
-    + weights.keywordDifficulty * (-kdStd)
-    + weights.serpComplexity * (-serpStd)
+  const s1120 = weights.positionGap * (-gap(centers.B1120))
     + weights.contentMatch * contentMatch
     + weights.linkGap * (-linkGapStd);
 
   const exps = softmax([s13, s46, s710, s1120]);
   const [B13, B46, B710, B1120] = exps;
-  let stay = Math.min(0.8, weights.base_stay + Math.max(0, (row.position - 25) / 100));
+
+  let stay = weights.base_stay
+    + Math.max(0, (row.position - 25) / 100)
+    + weights.keywordDifficulty * kdStd * 0.5
+    + weights.serpComplexity * serpStd * 0.5;
+  stay = Math.min(0.8, Math.max(0, stay));
+
   // renormalize with stay so total <=1
   const improve = B13 + B46 + B710 + B1120;
   const scale = improve + stay > 1 ? (1 - stay) / Math.max(improve, 1e-6) : 1;
