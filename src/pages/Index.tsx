@@ -4,6 +4,7 @@ import Sidebar from "@/features/estimator/components/Sidebar";
 import KPIs from "@/features/estimator/components/KPIs";
 import DataTable from "@/features/estimator/components/DataTable";
 import MonteCarloPanel from "@/features/estimator/components/MonteCarloPanel";
+import PerformanceSummary from "@/features/estimator/components/PerformanceSummary";
 import { parseFile, mapAndClean } from "@/features/estimator/parser";
 import { computeTable } from "@/features/estimator/model";
 import { monteCarlo } from "@/features/estimator/simulation";
@@ -132,6 +133,13 @@ export default function Index() {
             improvingShare={totals.improvingShare}
             mcActive={settings.monteCarlo}
             mcStats={mc?.stats}
+          />
+
+          <PerformanceSummary
+            baseline={totals.baselineClicks}
+            estimated={totals.estimatedClicks}
+            incremental={totals.incrementalClicks}
+            engine={settings.engine}
           />
 
           {settings.monteCarlo && mc ? <MonteCarloPanel stats={mc.stats} series={mc.series} /> : null}
