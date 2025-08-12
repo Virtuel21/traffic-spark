@@ -3,8 +3,10 @@ import TopBar from "@/features/estimator/components/TopBar";
 import Sidebar from "@/features/estimator/components/Sidebar";
 import KPIs from "@/features/estimator/components/KPIs";
 import DataTable from "@/features/estimator/components/DataTable";
+import MonteCarloPanel from "@/features/estimator/components/MonteCarloPanel";
 import { parseFile, mapAndClean } from "@/features/estimator/parser";
 import { computeTable } from "@/features/estimator/model";
+import { monteCarlo } from "@/features/estimator/simulation";
 import { DEFAULT_COHORTS, DEFAULT_CTR, DEFAULT_WEIGHTS } from "@/features/estimator/constants";
 import { ColumnMapping, KeywordRow, SettingsState, TableRow } from "@/features/estimator/types";
 import { exportTableCSV, exportTableXLSX } from "@/features/estimator/export";
@@ -80,6 +82,15 @@ export default function Index() {
   }, [mapped, filters]);
 
   const { table, totals } = useMemo(() => computeTable(cleaned, settings), [cleaned, settings]);
+  const mc = useMemo(() => settings.monteCarlo ? monteCarlo(cleaned, settings, settings.iterations) : null, [cleaned, settings]);
+  const [tableHeight, setTableHeight] = useState(520);
+
+  useEffect(() => {
+    const calc = () => setTableHeight(Math.max(200, window.innerHeight - 340));
+    calc();
+    window.addEventListener("resize", calc);
+    return () => window.removeEventListener("resize", calc);
+  }, []);
 
   function onFile(file: File) {
     parseFile(file).then(({ rows, headers }) => { setRawRows(rows); setRawHeaders(headers); });
@@ -93,7 +104,8 @@ export default function Index() {
     <main className="min-h-screen">
       <TopBar onFile={onFile} loadSample={loadSample} setLoadSample={setLoadSample} />
 
-      <section className="max-w-screen-2xl mx-auto px-4 py-6 grid lg:grid-cols-[400px_1fr] gap-6">
+      <section className="max-w-screen-2xl mx-auto px-4 py-6 grid gap-6 lg:grid-cols-[400px_1fr] lg:h-[calc(100vh-80px)] overflow-hidden">
+        <div className="overflow-y-auto pr-2">
           <Sidebar
             settings={settings}
             setSettings={setSettings}
@@ -108,17 +120,28 @@ export default function Index() {
             countries={countryOptions}
             devices={deviceOptions}
             intents={intentOptions}
-         />
+          />
+        </div>
 
-        <div className="space-y-6">
-          <KPIs baseline={totals.baselineClicks} estimated={totals.estimatedClicks} incremental={totals.incrementalClicks} keywords={totals.keywords} improvingShare={totals.improvingShare} mcActive={settings.monteCarlo} />
+        <div className="space-y-6 overflow-y-auto">
+          <KPIs
+            baseline={totals.baselineClicks}
+            estimated={totals.estimatedClicks}
+            incremental={totals.incrementalClicks}
+            keywords={totals.keywords}
+            improvingShare={totals.improvingShare}
+            mcActive={settings.monteCarlo}
+            mcStats={mc?.stats}
+          />
+
+          {settings.monteCarlo && mc ? <MonteCarloPanel stats={mc.stats} series={mc.series} /> : null}
 
           <div className="flex gap-2">
             <button className="px-3 py-2 rounded-md border" onClick={() => exportTableCSV(table)}>Exporter CSV</button>
             <button className="px-3 py-2 rounded-md border" onClick={() => exportTableXLSX(table)}>Exporter XLSX</button>
           </div>
 
-          <DataTable rows={table as TableRow[]} />
+          <DataTable rows={table as TableRow[]} height={tableHeight} />
         </div>
       </section>
     </main>
