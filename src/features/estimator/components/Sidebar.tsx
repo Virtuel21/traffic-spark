@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { HelpTooltip } from "@/components/HelpTooltip";
-import { DEFAULT_COHORTS } from "../../estimator/constants";
+import { BUCKET_LABELS, DEFAULT_COHORTS } from "../../estimator/constants";
 import { ColumnMapping, CohortRule, CTRBuckets, EngineMode, ScoreWeights, SettingsState, FiltersState } from "../../estimator/types";
 
 interface ColumnMapperProps {
@@ -182,7 +182,7 @@ export default function Sidebar({ settings, setSettings, onReset, ctrError, head
         <div className="grid grid-cols-5 gap-2 text-xs">
           {(["B13","B46","B710","B1120","B21P"] as (keyof CTRBuckets)[]).map((k) => (
             <div key={k} className="space-y-1">
-              <Label>{k}</Label>
+              <Label>{BUCKET_LABELS[k]}</Label>
               <Input type="number" value={(settings.ctr as any)[k]} onChange={(e) => setCTR(k, Number(e.target.value || 0))} />
             </div>
           ))}
@@ -194,7 +194,7 @@ export default function Sidebar({ settings, setSettings, onReset, ctrError, head
         <TabsList className="grid grid-cols-2"><TabsTrigger value="heuristic">Heuristique</TabsTrigger><TabsTrigger value="score">Score</TabsTrigger></TabsList>
         <TabsContent value="heuristic">
           <Card className="p-4 space-y-3">
-            <h3 className="text-sm font-medium flex items-center gap-2">Cohortes <HelpTooltip content="Les cohortes heuristiques attribuent des probabilités d'amélioration selon des règles simples. La probabilité restante va vers B1120; si la somme dépasse 1, une erreur apparaît." /></h3>
+            <h3 className="text-sm font-medium flex items-center gap-2">Cohortes <HelpTooltip content={`Les cohortes heuristiques attribuent des probabilités d'amélioration selon des règles simples. La probabilité restante va vers ${BUCKET_LABELS.B1120}; si la somme dépasse 1, une erreur apparaît.`} /></h3>
             {settings.cohorts.map((c, i) => {
               const sum = c.probs.B13 + c.probs.B46 + c.probs.B710 + c.probs.stay;
               const leftover = Math.max(0, 1 - sum);
@@ -205,12 +205,12 @@ export default function Sidebar({ settings, setSettings, onReset, ctrError, head
                   <div className="grid grid-cols-4 gap-2 items-end text-xs">
                     {(["B13","B46","B710","stay"] as const).map((k) => (
                       <div key={k} className="space-y-1">
-                        <Label>{k}</Label>
+                        <Label>{k === "stay" ? "Rester" : BUCKET_LABELS[k]}</Label>
                         <Input type="number" step="0.01" value={(c.probs as any)[k]} onChange={(e) => setCohort(i, { probs: { ...c.probs, [k]: Number(e.target.value || 0) } as any })} />
                       </div>
                     ))}
                   </div>
-                  <p className="text-[11px] mt-2">Somme={(sum).toFixed(2)} | Reste→B1120={(leftover).toFixed(2)}</p>
+                  <p className="text-[11px] mt-2">Somme={(sum).toFixed(2)} | Reste→{BUCKET_LABELS.B1120}={(leftover).toFixed(2)}</p>
                 </div>
               );
             })}

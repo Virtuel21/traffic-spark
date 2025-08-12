@@ -1,6 +1,7 @@
 import * as XLSX from "xlsx";
 import Papa from "papaparse";
-import { TableRow } from "./types";
+import { Bucket, TableRow } from "./types";
+import { BUCKET_LABELS } from "./constants";
 
 export function exportTableCSV(rows: TableRow[], filename = "estimator-table.csv") {
   const csv = Papa.unparse(rows.map(r => ({
@@ -8,9 +9,9 @@ export function exportTableCSV(rows: TableRow[], filename = "estimator-table.csv
     Position: r.position,
     Volume: r.volume,
     Cohort: r.cohort,
-    BaselineBucket: r.baselineBucket,
+    BaselineBucket: BUCKET_LABELS[r.baselineBucket],
     BaselineCTR: r.baselineCTR,
-    ExpectedBucket: r.expectedBucket,
+    ExpectedBucket: r.expectedBucket ? BUCKET_LABELS[r.expectedBucket as Bucket] : "",
     ExpectedPosition: r.expectedPosition,
     BaselineSessions: r.baselineClicks,
     EstimatedSessions: r.estimatedClicks,
@@ -30,9 +31,9 @@ export function exportTableXLSX(rows: TableRow[], filename = "estimator-table.xl
     Position: r.position,
     Volume: r.volume,
     Cohort: r.cohort,
-    BaselineBucket: r.baselineBucket,
+    BaselineBucket: BUCKET_LABELS[r.baselineBucket],
     BaselineCTR: r.baselineCTR,
-    ExpectedBucket: r.expectedBucket,
+    ExpectedBucket: r.expectedBucket ? BUCKET_LABELS[r.expectedBucket as Bucket] : "",
     ExpectedPosition: r.expectedPosition,
     BaselineSessions: r.baselineClicks,
     EstimatedSessions: r.estimatedClicks,
