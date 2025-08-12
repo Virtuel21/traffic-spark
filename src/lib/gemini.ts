@@ -1,0 +1,21 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+export async function categorizeKeywords(keywords: string[]): Promise<Record<string, string>> {
+  if (!apiKey || !keywords.length) return {};
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const prompt = `Group the following keywords into high-level topics.\n` +
+      `Return JSON mapping each keyword to a topic.\n` +
+      keywords.map((k) => `- ${k}`).join("\n");
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    const json = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] || "{}");
+    return json as Record<string, string>;
+  } catch (err) {
+    console.error("Gemini topic generation failed", err);
+    return {};
+  }
+}
