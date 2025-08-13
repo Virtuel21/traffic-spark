@@ -1,6 +1,11 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+// Use the provided Gemini API key by default so keyword categorization
+// works out-of-the-box. It can still be overridden via VITE_GEMINI_API_KEY
+// at runtime.
+const apiKey =
+  import.meta.env.VITE_GEMINI_API_KEY ||
+  "AIzaSyCoPnypnXr5LbLi0G49wg-8eFAhiBU0fDQ";
 
 function fallbackCategorize(keywords: string[]): Record<string, string> {
   const mapping: Record<string, string> = {};
