@@ -60,6 +60,12 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Gemini API Key
+
+Keyword grouping uses Google's Gemini model. A default API key is bundled for
+testing, but you can supply your own by setting `VITE_GEMINI_API_KEY` in your
+environment.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/0fbc7e06-bd1d-4fae-a5ab-aa150a31b100) and click on Share -> Publish.
